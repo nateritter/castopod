@@ -56,7 +56,7 @@ class EpisodeTest extends CIUnitTestCase
         $this->episode['created_at'] = [];
         $this->episode['updated_at'] = [];
         $this->apiUrl = config('RestApi')
-            ->gateway;
+->gateway;
     }
 
     public function testList(): void

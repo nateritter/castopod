@@ -127,6 +127,7 @@ nb-configuration.xml
 /api/
 
 # Visual Studio Code
+.history/
 .vscode/
 tmp/
 

@@ -6,11 +6,15 @@ namespace Modules\Api\Rest\V1\Filters;
 
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\Filters\FilterInterface;
+use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\Request;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\Response;
 use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\Shield\Entities\User;
+use Config\Services;
 use Modules\Api\Rest\V1\Config\RestApi;
+use Modules\Auth\Models\UserModel;
 
 class ApiFilter implements FilterInterface
 {
@@ -51,6 +55,61 @@ class ApiFilter implements FilterInterface
                 $response->setStatusCode(401);
 
                 return $response;
+            }
+
+            // Get the IncomingRequest instance
+            /** @var IncomingRequest $incomingRequest */
+            $incomingRequest = Services::request();
+
+            if ($incomingRequest->getMethod() === 'post' && ($incomingRequest->getPost(
+                'user_id'
+            ) || $incomingRequest->getPost('updated_by'))) {
+                $user_id = $incomingRequest->getPost('user_id');
+                $updated_by = $incomingRequest->getPost('updated_by');
+
+                if (! is_scalar($user_id) || ! is_scalar($updated_by)) {
+                    $response->setStatusCode(400); // Bad Request
+
+                    return $response;
+                }
+
+                if (! $user_id || ! $updated_by) {
+                    $response->setStatusCode(401);
+
+                    return $response;
+                }
+
+                $userModel = new UserModel();
+
+                /** @var User|null $user */
+                $user = $userModel->find($user_id);
+
+                /** @var User|null $updatedByUser */
+                $updatedByUser = $userModel->find($updated_by);
+
+                if (
+                    ! $user instanceof User ||
+                    ! $updatedByUser instanceof User
+                ) {
+                    $response->setStatusCode(401);
+                    return $response;
+                }
+
+                if (
+                    ! $user->can('create-episode') ||
+                    ! $updatedByUser->can('create-episode')
+                ) {
+                    $response->setStatusCode(403);
+                    return $response;
+                }
+
+                if (
+                    ! $user->can('update-episode') ||
+                    ! $updatedByUser->can('update-episode')
+                ) {
+                    $response->setStatusCode(403);
+                    return $response;
+                }
             }
         }
     }
