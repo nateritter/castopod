@@ -6,7 +6,6 @@ namespace Modules\Api\Rest\V1\Controllers;
 
 use App\Entities\Episode;
 use App\Entities\Location;
-use App\Entities\Podcast;
 use App\Entities\Post;
 use App\Models\EpisodeModel;
 use App\Models\PodcastModel;
